@@ -5,4 +5,5 @@ import com.odev.urlshortener.demo.dto.response.UrlShortenResponse;
 
 public interface UrlService {
     UrlShortenResponse shortenUrl(UrlShortenRequest request);
+    String getOriginalUrl(String shortCode);
 }

@@ -3,6 +3,7 @@ package com.odev.urlshortener.demo.service.impl;
 import com.odev.urlshortener.demo.dto.request.UrlShortenRequest;
 import com.odev.urlshortener.demo.dto.response.UrlShortenResponse;
 import com.odev.urlshortener.demo.entity.UrlEntity;
+import com.odev.urlshortener.demo.exception.UrlNotFoundException;
 import com.odev.urlshortener.demo.repository.UrlRepository;
 import com.odev.urlshortener.demo.service.UrlService;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,5 +55,19 @@ public class UrlServiceImpl implements UrlService {
             shortCode = generate();
         } while (urlRepository.findByShortCode(shortCode).isPresent());
         return shortCode;
+    }
+
+    @Override
+    public String getOriginalUrl(String shortCode) {
+        // 1. Input shortCode -> already done (method parameter)
+        // 2. Query DB for the original URL
+        UrlEntity entity = urlRepository.findByShortCode(shortCode)
+            // 3. If not found, throw UrlNotFoundException
+                .orElseThrow(() -> new UrlNotFoundException(shortCode));
+        // 5. Increment click count and save
+        entity.setClickCount(entity.getClickCount() + 1);
+        urlRepository.save(entity);
+        // 6. Return the original URL
+        return entity.getOriginalUrl();
     }
 }
