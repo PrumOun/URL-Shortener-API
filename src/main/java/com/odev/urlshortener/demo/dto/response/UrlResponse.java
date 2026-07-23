@@ -9,10 +9,11 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class UrlShortenResponse {
+public class UrlResponse {
     private Long id;
     private String originalUrl;
     private String shortCode;
     private Long clickCount;
     private LocalDateTime createdAt;
+    private boolean deleted;
 }

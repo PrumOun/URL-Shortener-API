@@ -1,13 +1,24 @@
 package com.odev.urlshortener.demo.service.impl;
 
 import com.odev.urlshortener.demo.dto.request.UrlShortenRequest;
-import com.odev.urlshortener.demo.dto.response.UrlShortenResponse;
+import com.odev.urlshortener.demo.dto.response.PageResponse;
+import com.odev.urlshortener.demo.dto.response.UrlResponse;
 import com.odev.urlshortener.demo.entity.UrlEntity;
+import com.odev.urlshortener.demo.exception.InvalidPageSizeException;
+import com.odev.urlshortener.demo.exception.InvalidSortFieldException;
+import com.odev.urlshortener.demo.exception.UrlGoneException;
 import com.odev.urlshortener.demo.exception.UrlNotFoundException;
 import com.odev.urlshortener.demo.repository.UrlRepository;
 import com.odev.urlshortener.demo.service.UrlService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Set;
 
 import static com.odev.urlshortener.demo.util.ShortCodeGenerator.generate;
 
@@ -22,7 +33,7 @@ public class UrlServiceImpl implements UrlService {
     }
 
     @Override
-    public UrlShortenResponse shortenUrl(UrlShortenRequest request) {
+    public UrlResponse shortenUrl(UrlShortenRequest request) {
         // 1. Receive DTO -> already done (method parameter)
         //    Validation itself happens at the Controller via @Valid
 
@@ -37,16 +48,8 @@ public class UrlServiceImpl implements UrlService {
 
         UrlEntity saved = urlRepository.save(entity);
 
-        // 4, Build Response DTO
-        UrlShortenResponse response = new UrlShortenResponse();
-        response.setId(saved.getId());
-        response.setOriginalUrl(saved.getOriginalUrl());
-        response.setShortCode(baseUrl + "/" + saved.getShortCode());
-        response.setClickCount(saved.getClickCount());
-        response.setCreatedAt(saved.getCreatedAt());
-
-        // 5. Return Response DTO
-        return response;
+        // 4. Return Response DTO
+        return toResponse(saved);
     }
 
     private String generateUniqueShortCode() {
@@ -57,6 +60,17 @@ public class UrlServiceImpl implements UrlService {
         return shortCode;
     }
 
+    private UrlResponse toResponse(UrlEntity entity) {
+        UrlResponse response = new UrlResponse();
+        response.setId(entity.getId());
+        response.setOriginalUrl(entity.getOriginalUrl());
+        response.setShortCode(baseUrl + "/r/" + entity.getShortCode());
+        response.setClickCount(entity.getClickCount());
+        response.setCreatedAt(entity.getCreatedAt());
+        response.setDeleted(entity.isDeleted());
+        return response;
+    }
+
     @Override
     public String getOriginalUrl(String shortCode) {
         // 1. Input shortCode -> already done (method parameter)
@@ -64,10 +78,61 @@ public class UrlServiceImpl implements UrlService {
         UrlEntity entity = urlRepository.findByShortCode(shortCode)
             // 3. If not found, throw UrlNotFoundException
                 .orElseThrow(() -> new UrlNotFoundException(shortCode));
+        if(entity.isDeleted()){
+            throw new UrlGoneException(shortCode);
+        }
         // 5. Increment click count and save
         entity.setClickCount(entity.getClickCount() + 1);
         urlRepository.save(entity);
         // 6. Return the original URL
         return entity.getOriginalUrl();
+    }
+
+    @Override
+    public UrlResponse getUrlDetails(Long id) {
+        UrlEntity entity = urlRepository.findById(id)
+            .orElseThrow(() -> new UrlNotFoundException(id));
+        return toResponse(entity);
+    }
+
+    private static final int MAX_PAGE_SIZE = 100;
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "shortCode", "clickCount", "createdAt");
+
+    @Override
+    public PageResponse<UrlResponse> getAllUrls(int page, int size, String sort){
+        if (size > MAX_PAGE_SIZE) {
+            throw new InvalidPageSizeException(size, MAX_PAGE_SIZE);
+        }
+        String[] sortParams = sort.split(",");
+        String sortField = sortParams[0];
+
+        if (!ALLOWED_SORT_FIELDS.contains(sortField)) {
+            throw new InvalidSortFieldException(sortField);
+        }
+
+        Sort.Direction sortDirection = sortParams.length > 1 && sortParams[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortField));
+        Page<UrlEntity> entityPage = urlRepository.findAll(pageable);
+
+        List<UrlResponse> content = entityPage.getContent().stream()
+                .map(this::toResponse)
+                .toList();
+
+        return new PageResponse<>(
+                content,
+                entityPage.getNumber(),
+                entityPage.getSize(),
+                entityPage.getTotalElements(),
+                entityPage.getTotalPages(),
+                entityPage.isLast()
+        );
+    }
+
+    @Override
+    public void deleteUrl(Long id) {
+        UrlEntity entity = urlRepository.findById(id)
+                .orElseThrow(() -> new UrlNotFoundException(id));
+        entity.setDeleted(true);
+        urlRepository.save(entity);
     }
 }
