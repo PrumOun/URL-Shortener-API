@@ -29,7 +29,7 @@ public class UrlEntity {
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column
+    @Column(nullable = true)
     private LocalDateTime updatedAt;
 
     @Column

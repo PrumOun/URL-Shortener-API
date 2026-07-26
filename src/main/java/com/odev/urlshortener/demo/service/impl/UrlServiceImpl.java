@@ -72,23 +72,6 @@ public class UrlServiceImpl implements UrlService {
     }
 
     @Override
-    public String getOriginalUrl(String shortCode) {
-        // 1. Input shortCode -> already done (method parameter)
-        // 2. Query DB for the original URL
-        UrlEntity entity = urlRepository.findByShortCode(shortCode)
-            // 3. If not found, throw UrlNotFoundException
-                .orElseThrow(() -> new UrlNotFoundException(shortCode));
-        if(entity.isDeleted()){
-            throw new UrlGoneException(shortCode);
-        }
-        // 5. Increment click count and save
-        entity.setClickCount(entity.getClickCount() + 1);
-        urlRepository.save(entity);
-        // 6. Return the original URL
-        return entity.getOriginalUrl();
-    }
-
-    @Override
     public UrlResponse getUrlDetails(Long id) {
         UrlEntity entity = urlRepository.findById(id)
             .orElseThrow(() -> new UrlNotFoundException(id));
