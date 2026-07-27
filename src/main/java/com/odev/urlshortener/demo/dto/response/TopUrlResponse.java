@@ -5,15 +5,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
-public class UrlResponse {
-    private Long id;
-    private String originalUrl;
+@AllArgsConstructor
+public class TopUrlResponse {
     private String shortCode;
     private Long clickCount;
-    private LocalDateTime createdAt;
-    private boolean deleted;
 }
