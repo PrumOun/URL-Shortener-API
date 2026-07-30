@@ -38,8 +38,13 @@ public class UrlEntity {
     @Column(nullable = false)
     private boolean deleted = false;
 
+    @Version
+    @Column(nullable = false)
+    private Long version = 0L;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        this.expiresAt = this.createdAt.plusDays(30); // Set default expiration to 30 days
     }
 }
