@@ -8,6 +8,7 @@ import com.odev.urlshortener.demo.exception.UrlNotFoundException;
 import com.odev.urlshortener.demo.repository.UrlRepository;
 import com.odev.urlshortener.demo.service.AnalyticsService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,11 +17,14 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class AnalyticsServiceImpl implements AnalyticsService {
     private final UrlRepository urlRepository;
 
     @Override
     public UrlStatsResponse getUrlStats(String shortCode){
+        log.info("Analytics requested: shortCode={}", shortCode);
+
         UrlEntity entity = urlRepository.findByShortCode(shortCode)
                 .orElseThrow(() -> new UrlNotFoundException(shortCode));
 

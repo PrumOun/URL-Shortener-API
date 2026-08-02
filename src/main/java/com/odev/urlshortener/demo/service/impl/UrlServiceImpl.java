@@ -10,6 +10,7 @@ import com.odev.urlshortener.demo.exception.UrlGoneException;
 import com.odev.urlshortener.demo.exception.UrlNotFoundException;
 import com.odev.urlshortener.demo.repository.UrlRepository;
 import com.odev.urlshortener.demo.service.UrlService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +24,7 @@ import java.util.Set;
 import static com.odev.urlshortener.demo.util.ShortCodeGenerator.generate;
 
 @Service
+@Slf4j
 public class UrlServiceImpl implements UrlService {
     private final UrlRepository urlRepository;
     @Value("${app.base-url}")
@@ -47,6 +49,7 @@ public class UrlServiceImpl implements UrlService {
         entity.setClickCount(0L);
 
         UrlEntity saved = urlRepository.save(entity);
+        log.info("URL created: shortCode={}, id={}", saved.getShortCode(), saved.getId());
 
         // 4. Return Response DTO
         return toResponse(saved);
@@ -117,5 +120,7 @@ public class UrlServiceImpl implements UrlService {
                 .orElseThrow(() -> new UrlNotFoundException(id));
         entity.setDeleted(true);
         urlRepository.save(entity);
+
+        log.info("URL deleted: id={}, shortCode={}", id, entity.getShortCode());
     }
 }
