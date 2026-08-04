@@ -67,7 +67,8 @@ public class UrlServiceImpl implements UrlService {
         UrlResponse response = new UrlResponse();
         response.setId(entity.getId());
         response.setOriginalUrl(entity.getOriginalUrl());
-        response.setShortCode(baseUrl + "/r/" + entity.getShortCode());
+        response.setShortCode(entity.getShortCode());
+        response.setShortUrl(baseUrl + "/r/" + entity.getShortCode());
         response.setClickCount(entity.getClickCount());
         response.setCreatedAt(entity.getCreatedAt());
         response.setDeleted(entity.isDeleted());
