@@ -3,7 +3,7 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0
-    container_name: url-shortener-mysql
+    container_name: url-shortener
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
@@ -37,6 +37,8 @@ services:
       APP_BASE_URL: http://localhost:8080
     ports:
       - "8080:8080"
+    volumes:
+      - ./logs:/app/logs
 
 volumes:
   mysql-data:
