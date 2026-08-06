@@ -126,7 +126,7 @@ The API will be available at `http://localhost:8080`.
 
 **1. Clone the repository**
 ```bash
-git clone <repository-url>
+git clone https://github.com/PrumOun/URL-Shortener-API.git
 cd url-shortener
 ```
 
