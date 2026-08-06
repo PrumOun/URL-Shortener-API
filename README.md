@@ -113,7 +113,7 @@ http://localhost:8080/swagger-ui.html
 ### Option A — Docker Compose (recommended, no local setup required)
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/PrumOun/URL-Shortener-API.git
 cd url-shortener
 docker compose up --build
 ```
